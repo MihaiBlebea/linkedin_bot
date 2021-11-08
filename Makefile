@@ -13,5 +13,16 @@ venv-install-all:
 venv-install:
 	./virtualenv/bin/pip3 install $(package)
 
+ansible-deploy:
+	ansible-playbook -i $$HOME/.ansible/inventory ./ansible/deploy.yaml
+
+ansible-remove:
+	ansible-playbook -i $$HOME/.ansible/inventory ./ansible/remove.yaml
+
+git:
+	git add . && git commit -m "$(msg)" && git push origin master
+
+git-deploy: git ansible-deploy
+
 api:
 	./virtualenv/bin/python3 ./src/api.py
