@@ -1,0 +1,23 @@
+---
+- name: Remove the linkedin bot
+  hosts: all
+  vars:
+    folder_path: /home/pi/linkedin_bot
+  tasks:
+    - name: Backup the database
+      shell:
+        cmd: cp ./store.db ./../linkedin_bot_store.db
+        chdir: "{{ folder_path }}"
+      register: out
+
+    - name: Removes the folder
+      shell:
+        cmd: "rm -rf {{ folder_path }}"
+      register: out
+
+    - debug: var=out.stdout_lines
+
+    - name: Removing the file from bin
+      file:
+        path: "/home/pi/.local/bin/linkedin_bot"
+        state: absent

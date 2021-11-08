@@ -1,0 +1,60 @@
+---
+- name: Deploy linkedin bot script
+  hosts: all
+  vars:
+    folder_path: /home/pi/linkedin_bot
+  tasks:
+    - name: Clone scraper repo
+      git:
+        repo: https://github.com/MihaiBlebea/linkedin_bot.git
+        dest: "{{ folder_path }}"
+        clone: yes
+        update: yes
+
+    - name: Create the virtual env
+      shell:
+        cmd: python3 -m venv virtualenv
+        chdir: "{{ folder_path }}"
+      register: out
+
+    - debug: var=out.stdout_lines
+
+    - name: Install the dependencies in virtualenv
+      shell:
+        cmd: ./virtualenv/bin/pip3 install -r requirements.txt
+        chdir: "{{ folder_path }}"
+      register: out
+
+    - debug: var=out.stdout_lines
+
+    - name: Copy env file to remote
+      become: true 
+      copy:
+        src: ~/Projects/Python/linkedin_bot/.env
+        dest: "{{ folder_path }}/.env"
+        owner: pi
+        group: pi        
+        mode: 0644
+
+    - name: Copy credentials file to remote
+      become: true 
+      copy:
+        src: ~/Projects/Python/linkedin_bot/credentials.json
+        dest: "{{ folder_path }}/credentials.json"
+        owner: pi
+        group: pi        
+        mode: 0644
+
+    - name: Creating an executable file
+      copy:
+        dest: "/home/pi/.local/bin/linkedin_bot"
+        content: |
+            #!/bin/bash
+            cd {{ folder_path }} && ./execute.sh "${@}"
+
+    - name: Create a new file with permissions
+      file:
+        path: "/home/pi/.local/bin/linkedin_bot"
+        state: touch
+        mode: 0777
+        owner: pi
